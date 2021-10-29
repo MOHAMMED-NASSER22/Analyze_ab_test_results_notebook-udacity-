@@ -31,7 +31,7 @@
 # 
 # To get started, let's import our libraries.
 
-# In[3]:
+# In[2]:
 
 
 import pandas as pd
@@ -63,7 +63,7 @@ random.seed(42)
 # 
 # **a.** Read in the dataset from the `ab_data.csv` file and take a look at the top few rows here:
 
-# In[4]:
+# In[3]:
 
 
 df = pd.read_csv('ab_data.csv')
@@ -72,7 +72,13 @@ df.head()
 
 # **b.** Use the cell below to find the number of rows in the dataset.
 
-# In[5]:
+# In[24]:
+
+
+df.describe()
+
+
+# In[25]:
 
 
 df.shape
@@ -80,7 +86,7 @@ df.shape
 
 # **c.** The number of unique users in the dataset.
 
-# In[6]:
+# In[8]:
 
 
 df.user_id.nunique()
@@ -88,7 +94,7 @@ df.user_id.nunique()
 
 # **d.** The proportion of users converted.
 
-# In[7]:
+# In[9]:
 
 
 df.converted.mean()
@@ -96,15 +102,15 @@ df.converted.mean()
 
 # **e.** The number of times when the "group" is `treatment` but "landing_page" is not a `new_page`.
 
-# In[8]:
+# In[26]:
 
 
-df.query('group == "treatment" and landing_page != "new_page"').count()
+df.query('group == "treatment" and landing_page != "new_page"')
 
 
 # **f.** Do any of the rows have missing values?
 
-# In[9]:
+# In[28]:
 
 
 df.info()
@@ -128,21 +134,27 @@ df.info()
 # 
 # **a.** Now use the answer to the quiz to create a new dataset that meets the specifications from the quiz.  Store your new dataframe in **df2**.
 
-# In[10]:
+# In[13]:
 
 
 # Remove the inaccurate rows, and store the result in a new dataframe df2
 
-df2 = df[ ((df['group'] == 'treatment') == (df['landing_page'] == 'new_page') ) == True ]
+df2 = df[((df['group'] == 'treatment') == (df['landing_page'] == 'new_page') ) == True ]
 
 
-# In[11]:
+# In[32]:
 
 
-df2.head()
+df2.shape
 
 
-# In[12]:
+# In[34]:
+
+
+df2.describe()
+
+
+# In[35]:
 
 
 # Double Check all of the incorrect rows were removed from df2 - 
@@ -155,7 +167,7 @@ df2[((df2['group'] == 'treatment') == (df2['landing_page'] == 'new_page')) == Fa
 
 # **a.** How many unique **user_id**s are in **df2**?
 
-# In[13]:
+# In[16]:
 
 
 df2.user_id.nunique()
@@ -163,7 +175,7 @@ df2.user_id.nunique()
 
 # **b.** There is one **user_id** repeated in **df2**.  What is it?
 
-# In[14]:
+# In[20]:
 
 
 df2.user_id.duplicated().value_counts()
@@ -171,24 +183,30 @@ df2.user_id.duplicated().value_counts()
 
 # **c.** Display the rows for the duplicate **user_id**? 
 
-# In[15]:
+# In[39]:
 
 
-df2[df2.user_id.duplicated()]
+df2[df2.user_id.duplicated(keep =False)]
 
 
 # **d.** Remove **one** of the rows with a duplicate **user_id**, from the **df2** dataframe.
 
-# In[16]:
+# In[40]:
 
 
 df2.drop_duplicates(subset=['user_id'], inplace =True)
 
 
-# In[17]:
+# In[41]:
 
 
 df2.user_id.duplicated().value_counts()
+
+
+# In[42]:
+
+
+df2.shape
 
 
 # ### ToDo 1.4  
@@ -200,21 +218,15 @@ df2.user_id.duplicated().value_counts()
 # 
 # 
 
-# In[18]:
+# In[44]:
 
 
 df2.converted.mean()
 
 
-# In[19]:
-
-
-df2.head()
-
-
 # **b.** Given that an individual was in the `control` group, what is the probability they converted?
 
-# In[20]:
+# In[43]:
 
 
 df2.query('group == "control"')['converted'].mean()
@@ -222,7 +234,7 @@ df2.query('group == "control"')['converted'].mean()
 
 # **c.** Given that an individual was in the `treatment` group, what is the probability they converted?
 
-# In[21]:
+# In[45]:
 
 
 df2.query('group == "treatment"')['converted'].mean()
@@ -240,14 +252,13 @@ obs_diff
 
 # **d.** What is the probability that an individual received the new page?
 
-# In[25]:
+# In[46]:
 
 
 n_newpage=df[df.landing_page == 'new_page'].count()[0]
 n_oldpage=df[df.landing_page == 'old_page'].count()[0]
 
-p = n_newpage / (n_newpage + n_oldpage)
-p
+n_newpage / (n_newpage + n_oldpage)
 
 
 # **e.** Consider your results from parts (a) through (d) above, and explain below whether the new `treatment` group users lead to more conversions.
@@ -263,12 +274,12 @@ p
 
 # ## Null Hypothesis $H_0$ Testing
 # 
-# 1. $H_{0} : P{old} > P{new}$
-# 2. $H_{1} : P{old} <=  P{new}$
+# 1. $H_{0} : P{old} >= P{new}$
+# 2. $H_{1} : P{old} <  P{new}$
 
 # **a.** What is the **conversion rate** for $p_{new}$ under the null hypothesis? 
 
-# In[49]:
+# In[47]:
 
 
 p_new = df2.converted.mean()
@@ -277,7 +288,7 @@ p_new
 
 # **b.** What is the **conversion rate** for $p_{old}$ under the null hypothesis? 
 
-# In[50]:
+# In[48]:
 
 
 p_old = df2.converted.mean()
@@ -287,7 +298,7 @@ p_old
 # **c.** What is $n_{new}$, the number of individuals in the treatment group? <br><br>
 # *Hint*: The treatment group users are shown the new page.
 
-# In[88]:
+# In[49]:
 
 
 n_new = df2.query('group ==  "treatment"').shape[0]
@@ -296,7 +307,7 @@ n_new
 
 # **d.** What is $n_{old}$, the number of individuals in the control group?
 
-# In[89]:
+# In[50]:
 
 
 n_old = df2.query('group ==  "control"').shape[0]
@@ -309,28 +320,34 @@ n_old
 # Store these $n_{new}$ 1's and 0's in the `new_page_converted` numpy array.
 # 
 
-# In[96]:
+# In[58]:
 
 
 # Simulate a Sample for the treatment Group
-new_page_converted = np.random.choice([0,1] , size = n_new ,p = [p_new,1-p_new])
+new_page_converted = np.random.choice([1,0] , size = n_new ,p = [p_new,1-p_new])
 new_page_converted.mean()
+
+
+# In[57]:
+
+
+plt.hist(new_page_converted);
 
 
 # **f. Simulate Sample for the `control` Group** <br>
 # Simulate $n_{old}$ transactions with a conversion rate of $p_{old}$ under the null hypothesis. <br> Store these $n_{old}$ 1's and 0's in the `old_page_converted` numpy array.
 
-# In[97]:
+# In[59]:
 
 
 # Simulate a Sample for the control Group
-old_page_converted = np.random.choice([0,1], size=n_old, p=[p_old, 1-p_old])
+old_page_converted = np.random.choice([1,0], size=n_old, p=[p_old, 1-p_old])
 old_page_converted.mean()
 
 
 # **g.** Find the difference in the "converted" probability $(p{'}_{new}$ - $p{'}_{old})$ for your simulated samples from the parts (e) and (f) above. 
 
-# In[98]:
+# In[60]:
 
 
 new_page_converted.mean() - old_page_converted.mean()
@@ -343,22 +360,46 @@ new_page_converted.mean() - old_page_converted.mean()
 # <br>
 # Store all  $(p{'}_{new}$ - $p{'}_{old})$  values in a NumPy array called `p_diffs`.
 
-# In[99]:
+# In[65]:
 
 
 # Sampling distribution 
 p_diffs = []
 for _ in range (10000):
-    new_page_converted = np.random.choice([0,1] , size = n_new ,p = [p_new,1-p_new])
-    old_page_converted = np.random.choice([0,1], size=n_old, p=[p_old, 1-p_old])
+    new_page_converted = np.random.choice([1,0] , size = n_new ,p = [p_new,1-p_new])
+    old_page_converted = np.random.choice([1,0], size=n_old, p=[p_old, 1-p_old])
     diffs = new_page_converted.mean() - old_page_converted.mean()
     p_diffs.append(diffs)
 
 
-# In[100]:
+# **Suggestion form the review** <br>
+# **A "faster" way to simulate the 10000 trials **
+
+# In[112]:
+
+
+new_converted_simulation = np.random.binomial(n_new, p_new, 10000)/n_new
+old_converted_simulation = np.random.binomial(n_old, p_old, 10000)/n_old
+p_diffs = new_converted_simulation - old_converted_simulation
+
+
+# In[113]:
 
 
 np.array(p_diffs).mean()
+
+
+# In[114]:
+
+
+obs_diff = df2.query('group == "treatment"').converted.mean() - df2.query('group == "control"').converted.mean()
+obs_diff
+
+
+# In[115]:
+
+
+(p_diffs > obs_diff).mean()
 
 
 # **i. Histogram**<br> 
@@ -368,7 +409,7 @@ np.array(p_diffs).mean()
 # 
 # >**Tip**: Display title, x-label, and y-label in the chart.
 
-# In[111]:
+# In[116]:
 
 
 
@@ -380,9 +421,15 @@ plt.ylabel('Frequency')
 plt.legend()
 
 
+# In[117]:
+
+
+(np.array(p_diffs).mean()) - obs_diff
+
+
 # **j.** What proportion of the **p_diffs** are greater than the actual difference observed in the `df2` data?
 
-# In[113]:
+# In[118]:
 
 
 (p_diffs > obs_diff).mean()
@@ -392,9 +439,9 @@ plt.legend()
 #  - 1- What is this value called in scientific studies?  
 #  - 2- What does this value signify in terms of whether or not there is a difference between the new and old pages? *Hint*: Compare the value above with the "Type I error rate (0.05)". 
 
-# >1 - P-value.
-# >2 - A p-value is the probability of observing your statistic if the null hypothesis is true
-# so p-value = 0.098 which greater than 0.05 so we fail to reject null hypothesis (H0)
+# >1 - P-value. <br>
+# >2 - A p-value is the probability of observing your statistic if the null hypothesis is true<br>
+# so p-value = 0.90 which is so large than 0.05 so we dont't has the evidence to reject the null hypothesis
 
 # 
 # 
@@ -408,7 +455,7 @@ plt.legend()
 # - `n_new`: number of individuals who were shown the new_page
 # 
 
-# In[123]:
+# In[119]:
 
 
 import statsmodels.api as sm
@@ -483,13 +530,12 @@ n_new = len(df2.query('landing_page == "new_page"'))
 # 
 # >**Tip**: You don't have to dive deeper into z-test for this exercise. **Try having an overview of what does z-score signify in general.** 
 
-# In[127]:
+# In[120]:
 
 
 import statsmodels.api as sm
 # ToDo: Complete the sm.stats.proportions_ztest() method arguments
-#It's a right-tailed if you defined  𝐻1  as  (𝑝𝑛𝑒𝑤>𝑝𝑜𝑙𝑑) . >> so it  larger
-z_score, p_value = sm.stats.proportions_ztest([convert_old , convert_new] , [n_old,n_new],  alternative='larger')
+z_score, p_value = sm.stats.proportions_ztest([convert_old , convert_new] , [n_old,n_new],  alternative='smaller')
 print(z_score, p_value)
 
 
@@ -497,7 +543,7 @@ print(z_score, p_value)
 # 
 # >**Tip**: Notice whether the p-value is similar to the one computed earlier. Accordingly, can you reject/fail to reject the null hypothesis? It is important to correctly interpret the test statistic and p-value.
 
-# >**from above "For a right-tailed test, reject null if  𝑍𝑠𝑐𝑜𝑟𝑒  >  𝑍𝛼" <br> and Zscore = 1.3 and Z𝛼 = 1.645 <br> and the p-value is similar to what we get previous <br> so Yes, they agree with the finiding in part j ,k <br> in the end  we fail to reject null hypothesis (H0) as mentioned above   .**
+# >** the conversion rate of the new landing page is olny 1.31 standard deviations fron the convertion rate of the old landing page , still less than than 1.96 (the critical value) so we cant't rekect the null hypothesis  <br> and the p-value is similar to what we get previous and still too large to reject the null hypothesis
 
 # <a id='regression'></a>
 # ### Part III - A regression approach
@@ -507,26 +553,26 @@ print(z_score, p_value)
 # 
 # **a.** Since each row in the `df2` data is either a conversion or no conversion, what type of regression should you be performing in this case?
 
-# >**linear regression.**
+# >**logistic regression.**
 
 # **b.** The goal is to use **statsmodels** library to fit the regression model you specified in part **a.** above to see if there is a significant difference in conversion based on the page-type a customer receives. However, you first need to create the following two columns in the `df2` dataframe:
 #  1. `intercept` - It should be `1` in the entire column. 
 #  2. `ab_page` - It's a dummy variable column, having a value `1` when an individual receives the **treatment**, otherwise `0`.  
 
-# In[130]:
+# In[121]:
 
 
 df2['intercept'] = 1
 df2['ab_page'] = 0
 
 
-# In[139]:
+# In[122]:
 
 
 df2.loc[df2[df2['group'] == 'treatment'].index , 'ab_page']  = 1
 
 
-# In[140]:
+# In[123]:
 
 
 df2.head()
@@ -535,19 +581,19 @@ df2.head()
 # **c.** Use **statsmodels** to instantiate your regression model on the two columns you created in part (b). above, then fit the model to predict whether or not an individual converts. 
 # 
 
-# In[145]:
+# In[132]:
 
 
-lm = sm.OLS(df2['converted'], df2[['intercept', 'ab_page']])
+lm = sm.Logit(df2['converted'], df2[['intercept', 'ab_page']])
 results=lm.fit()
 
 
 # **d.** Provide the summary of your model below, and use it as necessary to answer the following questions.
 
-# In[146]:
+# In[134]:
 
 
-results.summary()
+results.summary2()
 
 
 # **e.** What is the p-value associated with **ab_page**? Why does it differ from the value you found in **Part II**?<br><br>  
@@ -558,7 +604,7 @@ results.summary()
 # - You may also compare the current p-value with the Type I error rate (0.05).
 # 
 
-# >**the p-value associated with *ab_page* is 0.190 <br> In **Part II** the p-value calculated where the null hypothesis was the old page will convert more than the new page <br>In **Part III** the p-value calculated in linear model where the null hypothesis was the diffrent between in converted pages is equal to 0 	.**
+# >**the p-value associated with *ab_page* is 0.1899 <br> In **Part II** the p-value calculated where the null hypothesis was the old page will convert more than the new page <br>In **Part III** the p-value calculated in linear model where the null hypothesis was the diffrent between in converted pages is equal to 0 	.**
 
 # **f.** Now, you are considering other things that might influence whether or not an individual converts.  Discuss why it is a good idea to consider other factors to add into your regression model.  Are there any disadvantages to adding additional terms into your regression model?
 
@@ -574,43 +620,51 @@ results.summary()
 # 
 #  Provide the statistical output as well as a written response to answer this question.
 
-# In[148]:
+# In[137]:
 
 
 countries_df=pd.read_csv('countries.csv')
+countries_df.head()
 
 
-# In[153]:
+# In[138]:
+
+
+countries_df.country.unique()
+
+
+# In[139]:
 
 
 df_new = countries_df.merge(df2 , how='inner' ,on = 'user_id')
 
 
-# In[167]:
+# In[140]:
 
 
 print(df_new.shape)
-df_new.head()
 
 
-# In[173]:
+# In[141]:
 
 
 df_new.groupby(['country'], as_index=False).mean()
 
 
-# In[176]:
-
-
-df_new['country'].unique()
-
-
-# In[179]:
+# In[144]:
 
 
 # Create the necessary dummy variables
 df_new[['CA', 'UK', 'US']]  = pd.get_dummies(df_new['country'])
 df_new.tail()
+
+
+# In[145]:
+
+
+lm2 = sm.Logit(df_new['converted'] , df_new[['intercept', 'ab_page', 'CA', 'US']])
+results2 = lm2.fit()
+results2.summary2()
 
 
 # **h. Fit your model and obtain the results**<br> 
@@ -627,16 +681,21 @@ df_new.tail()
 # - Comment on the effect of page and country to predict the conversion.
 # 
 
-# In[181]:
+# In[146]:
 
 
 # Fit your model, and summarize the results
-lm = sm.Logit(df_new['converted'] , df_new[['intercept', 'ab_page', 'CA', 'US']])
-results = lm.fit()
-results.summary2()
+df_new['UK_ab_page'] = df_new['UK'] * df_new['ab_page']
+df_new['US_ab_page'] = df_new['US'] * df_new['ab_page']
+
+lm3 = sm.Logit(df_new['converted'] , df_new[['intercept', 'ab_page', 'UK', 'US','UK_ab_page' , 'US_ab_page']])
+results3 = lm3.fit()
+results3.summary2()
 
 
-# >**The countries doesn't have that much  influnce on the convertion rate as their p-values are above 0.05.**
+# >**the p-value for UK_ab_page = 0.1681
+# the null hypothesis was that the difference in means would be 0 and the alternative would ve greater or less than 0, the p-value is still large than 0.05 , so we fail to reject the null hypothesis <br>
+# The countries doesn't have much influnce on the convertion rate as their p-values are above 0.05**
 
 # <a id='finalcheck'></a>
 # ## Final Check!
@@ -658,7 +717,7 @@ results.summary2()
 # 
 # 3. Once you've done this, you can submit your project by clicking on the "Submit Project" button in the lower right here. This will create and submit a zip file with this .ipynb doc and the .html or .pdf version you created. Congratulations!
 
-# In[182]:
+# In[147]:
 
 
 from subprocess import call
